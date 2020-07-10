@@ -17,11 +17,11 @@ router.get("/", (req, res) => {
     });
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", validateActionById, (req, res) => {
   res.status(200).json(req.user);
 });
 
-router.post("/:id/posts", (req, res) => {
+router.post("/:id/posts", validateActionById, validateActions, (req, res) => {
   const { id } = req.params;
 
   req.body.project_id = id;
@@ -36,7 +36,7 @@ router.post("/:id/posts", (req, res) => {
     });
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", validateActionById, (req, res) => {
   Actions.update(req.params.id, req.body)
     .then((updated) => {
       console.log("put:", updated);
@@ -54,7 +54,7 @@ router.put("/:id", (req, res) => {
     });
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", validateActionById, (req, res) => {
   Actions.remove(req.user.id)
     .then((deleteThis) => {
       console.log(deleteThis);
@@ -70,7 +70,7 @@ router.delete("/:id", (req, res) => {
     .then();
 });
 
-//custom middleware
+//*****************************************custom middleware*****************************************
 
 function validateActionById(req, res, next) {
   Actions.get(req.params.id)
@@ -89,8 +89,37 @@ function validateActionById(req, res, next) {
     });
 }
 
-// function validateUser(req, res, next) {}
+function validateUser(req, res, next) {
+  if (req.body === null) {
+    res.status(400).json({ message: "missing user data" });
+  } else if (req.body === "") {
+    res.status(404).json({ message: "missing required name field" });
+  } else {
+    next();
+  }
+}
 
-// function validateActions(req, res, next) {}
+function validateActions(req, res, next) {
+  console.log(req.body.project_id);
+  if (
+    // req.body.project_id === undefined ||
+    req.body.description === undefined ||
+    req.body.notes === undefined ||
+    req.body === null
+  ) {
+    res.status(400).json({ message: "missing user data" });
+  } else if (
+    // req.body.project_id === "" ||
+    // req.body.project_id === null ||
+    req.body.description === "" ||
+    req.body.description === null ||
+    req.body.notes === "" ||
+    req.body.notes === null
+  ) {
+    res.status(404).json({ message: "missing required name field" });
+  } else {
+    next();
+  }
+}
 
 module.exports = router;
